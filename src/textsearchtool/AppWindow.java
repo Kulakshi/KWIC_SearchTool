@@ -1,11 +1,17 @@
 package textsearchtool;
 
+import java.awt.Dimension;
+import java.io.File;
+import java.util.Scanner;
+import javax.swing.JFileChooser;
+import javax.swing.filechooser.FileNameExtensionFilter;
+import textsearchtool.util.FileReader;
+
 /*
  * To change this license header, choose License Headers in Project Properties.
  * To change this template file, choose Tools | Templates
  * and open the template in the editor.
  */
-
 /**
  *
  * @author Bashi
@@ -15,6 +21,8 @@ public class AppWindow extends javax.swing.JFrame {
     /**
      * Creates new form AppWindow
      */
+    File lastOpenedFile;
+    
     public AppWindow() {
         initComponents();
     }
@@ -32,13 +40,14 @@ public class AppWindow extends javax.swing.JFrame {
         jLabel1 = new javax.swing.JLabel();
         jLabel2 = new javax.swing.JLabel();
         jLabel3 = new javax.swing.JLabel();
-        jTextField1 = new javax.swing.JTextField();
-        jButton1 = new javax.swing.JButton();
+        textField_filePath = new javax.swing.JTextField();
+        btn_browseFile = new javax.swing.JButton();
         jTextField2 = new javax.swing.JTextField();
         jSpinner1 = new javax.swing.JSpinner();
         jPanel2 = new javax.swing.JPanel();
 
         setDefaultCloseOperation(javax.swing.WindowConstants.EXIT_ON_CLOSE);
+        setLocationByPlatform(true);
 
         jLabel1.setText("Search for the text:");
 
@@ -46,10 +55,10 @@ public class AppWindow extends javax.swing.JFrame {
 
         jLabel3.setText("Window size:");
 
-        jButton1.setText("Browse");
-        jButton1.addActionListener(new java.awt.event.ActionListener() {
+        btn_browseFile.setText("Browse");
+        btn_browseFile.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
-                jButton1ActionPerformed(evt);
+                btn_browseFileActionPerformed(evt);
             }
         });
 
@@ -67,10 +76,10 @@ public class AppWindow extends javax.swing.JFrame {
                 .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                     .addGroup(jPanel1Layout.createSequentialGroup()
                         .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING, false)
-                            .addComponent(jTextField1)
+                            .addComponent(textField_filePath)
                             .addComponent(jTextField2, javax.swing.GroupLayout.DEFAULT_SIZE, 664, Short.MAX_VALUE))
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                        .addComponent(jButton1))
+                        .addComponent(btn_browseFile))
                     .addComponent(jSpinner1, javax.swing.GroupLayout.PREFERRED_SIZE, 77, javax.swing.GroupLayout.PREFERRED_SIZE))
                 .addContainerGap(28, Short.MAX_VALUE))
         );
@@ -80,8 +89,8 @@ public class AppWindow extends javax.swing.JFrame {
                 .addGap(32, 32, 32)
                 .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
                     .addComponent(jLabel2)
-                    .addComponent(jTextField1, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                    .addComponent(jButton1))
+                    .addComponent(textField_filePath, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                    .addComponent(btn_browseFile))
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
                 .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
                     .addComponent(jLabel1)
@@ -121,12 +130,27 @@ public class AppWindow extends javax.swing.JFrame {
                 .addComponent(jPanel2, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
         );
 
-        pack();
+        setSize(new java.awt.Dimension(942, 464));
+        setLocationRelativeTo(null);
     }// </editor-fold>//GEN-END:initComponents
 
-    private void jButton1ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButton1ActionPerformed
+    private void btn_browseFileActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btn_browseFileActionPerformed
         // TODO add your handling code here:
-    }//GEN-LAST:event_jButton1ActionPerformed
+        final JFileChooser jFileChooser = new JFileChooser();
+        FileNameExtensionFilter filter = new FileNameExtensionFilter("XML FILES", "xml");
+        jFileChooser.setFileFilter(filter);
+        if(lastOpenedFile != null){
+            jFileChooser.setCurrentDirectory(lastOpenedFile);
+        }
+        jFileChooser.setPreferredSize(new Dimension(700, 500));
+        jFileChooser.showOpenDialog(this);
+        File selectedFile = jFileChooser.getSelectedFile();
+        lastOpenedFile = selectedFile;
+        textField_filePath.setText(selectedFile.getAbsolutePath());
+        
+        FileReader fileReader = new FileReader(selectedFile);
+        fileReader.loadFile();
+    }//GEN-LAST:event_btn_browseFileActionPerformed
 
     /**
      * @param args the command line arguments
@@ -164,14 +188,14 @@ public class AppWindow extends javax.swing.JFrame {
     }
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
-    private javax.swing.JButton jButton1;
+    private javax.swing.JButton btn_browseFile;
     private javax.swing.JLabel jLabel1;
     private javax.swing.JLabel jLabel2;
     private javax.swing.JLabel jLabel3;
     private javax.swing.JPanel jPanel1;
     private javax.swing.JPanel jPanel2;
     private javax.swing.JSpinner jSpinner1;
-    private javax.swing.JTextField jTextField1;
     private javax.swing.JTextField jTextField2;
+    private javax.swing.JTextField textField_filePath;
     // End of variables declaration//GEN-END:variables
 }
