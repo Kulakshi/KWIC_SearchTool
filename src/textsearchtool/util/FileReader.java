@@ -21,46 +21,51 @@ import org.w3c.dom.NodeList;
  * @author Bashi
  */
 public class FileReader {
-
-    File dataFile;
-
-    public FileReader(File file) {
-        if (file.getPath().endsWith("xml")) {
-            this.dataFile = file;
-        } else {
-            System.out.println("ERROR");
-        }
+    
+    File dataFiles[];
+    
+    public FileReader(File[] files) {
+        this.dataFiles = files;
     }
-
-    public void loadFile() {
-        if (dataFile != null) {
-
-            try {
-                DocumentBuilderFactory dbFactory = DocumentBuilderFactory.newInstance();
-                DocumentBuilder dBuilder = dbFactory.newDocumentBuilder();
-                Document doc = dBuilder.parse(dataFile);
-                doc.getDocumentElement().normalize();
-
-                NodeList sentenceTags = doc.getElementsByTagName("s");
-                ArrayList sentences = new ArrayList();
-                for (int i = 0; i < sentenceTags.getLength(); i++) {
-                    Node nSent = sentenceTags.item(i);
-                    String sentence = "";
-                    if (nSent.getNodeType() == Node.ELEMENT_NODE) {
-                        NodeList sentElements = nSent.getChildNodes();
-                        for (int j = 0; j < sentElements.getLength(); j++) {
-                            Node nWord = sentElements.item(j);
-                            if (nWord.getNodeType() == Node.ELEMENT_NODE) {
-                                sentence += " " + nWord.getTextContent().toString();
+    
+    public DataModel loadSentences() {
+        DataModel dataModel = new DataModel();
+        if (dataFiles != null) {
+            for (File dataFile : dataFiles) {
+                if (dataFile.getPath().endsWith("xml")) {
+                    try {
+                        DocumentBuilderFactory dbFactory = DocumentBuilderFactory.newInstance();
+                        DocumentBuilder dBuilder = dbFactory.newDocumentBuilder();
+                        Document doc = dBuilder.parse(dataFile);
+                        doc.getDocumentElement().normalize();
+                        
+                        NodeList sentenceTags = doc.getElementsByTagName("s");
+                        for (int i = 0; i < sentenceTags.getLength(); i++) {
+                            Node sentenceTag = sentenceTags.item(i);
+                            String sentenceNumber = ((Element) sentenceTag).getAttribute("n");
+                            ArrayList<String> words = new ArrayList<String>();
+                            String sentence = "";
+                            if (sentenceTag.getNodeType() == Node.ELEMENT_NODE) {
+                                NodeList sentElements = sentenceTag.getChildNodes();
+                                for (int j = 0; j < sentElements.getLength(); j++) {
+                                    Node nWord = sentElements.item(j);
+                                    if (nWord.getNodeType() == Node.ELEMENT_NODE) {
+                                        sentence += " " + nWord.getTextContent().toString();
+                                        words.add(nWord.getTextContent().toString());
+                                    }
+                                }
                             }
+                            dataModel.setDataEntry(sentence, words, dataFile.getName(), dataFile.getAbsolutePath(), sentenceNumber);
+                            
                         }
+                    } catch (Exception e) {
+                        e.printStackTrace();
                     }
-                    System.out.println(sentence);
                 }
-            } catch (Exception e) {
-                e.printStackTrace();
             }
+            
         }
+        return dataModel;
     }
-
+    
 }
