@@ -74,6 +74,8 @@ public class AppWindow extends javax.swing.JFrame {
             }
         });
 
+        spinner_windowSize.setModel(new javax.swing.SpinnerNumberModel(5, 0, null, 1));
+
         button_search.setText("Search");
         button_search.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {

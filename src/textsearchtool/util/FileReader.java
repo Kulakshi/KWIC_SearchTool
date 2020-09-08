@@ -9,6 +9,8 @@ import java.io.File;
 import java.io.FileNotFoundException;
 import java.util.ArrayList;
 import java.util.Scanner;
+import javax.swing.JFrame;
+import javax.swing.JOptionPane;
 import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.parsers.DocumentBuilder;
 import org.w3c.dom.Document;
@@ -21,13 +23,13 @@ import org.w3c.dom.NodeList;
  * @author Bashi
  */
 public class FileReader {
-    
+
     File dataFiles[];
-    
+
     public FileReader(File[] files) {
         this.dataFiles = files;
     }
-    
+
     public DataModel loadSentences() {
         DataModel dataModel = new DataModel();
         if (dataFiles != null) {
@@ -38,7 +40,7 @@ public class FileReader {
                         DocumentBuilder dBuilder = dbFactory.newDocumentBuilder();
                         Document doc = dBuilder.parse(dataFile);
                         doc.getDocumentElement().normalize();
-                        
+
                         NodeList sentenceTags = doc.getElementsByTagName("s");
                         for (int i = 0; i < sentenceTags.getLength(); i++) {
                             Node sentenceTag = sentenceTags.item(i);
@@ -56,16 +58,25 @@ public class FileReader {
                                 }
                             }
                             dataModel.setDataEntry(sentence, words, dataFile.getName(), dataFile.getAbsolutePath(), sentenceNumber);
-                            
+
                         }
                     } catch (Exception e) {
+                        JOptionPane.showMessageDialog(new JFrame(),
+                                "An error occurred while parsing files. Please add xml files in correct format",
+                                "File Parsing Error",
+                                JOptionPane.ERROR_MESSAGE);
                         e.printStackTrace();
                     }
+                } else {
+                    JOptionPane.showMessageDialog(new JFrame(),
+                            "Only XML files are accepted.",
+                            "File Type Error",
+                            JOptionPane.ERROR_MESSAGE);
                 }
             }
-            
+
         }
         return dataModel;
     }
-    
+
 }
