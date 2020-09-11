@@ -1,6 +1,6 @@
 # KWIC_SearchTool
 
-KWIC search tool is a simple implementation of a Key Word In Context text search. 
+KWIC search tool is a simple implementation for Key Word In Context text search. 
 
 ## Developer guide
 This is implemented as a netbeans project
