@@ -14,85 +14,77 @@ import javax.swing.table.AbstractTableModel;
  */
 public class DataModel  extends AbstractTableModel{
     
-    private ArrayList<String> sentences;
     private ArrayList<ArrayList<String>> sentenceNodes;
-    private ArrayList<String> fileNames;
-    private ArrayList<String> filePaths;
-    private ArrayList<String> sentenceNumbers;
+//    private ArrayList<String> fileNames;
+//    private ArrayList<String> filePaths;
+//    private ArrayList<String> sentenceNumbers;
     private ArrayList<String[]> rows;
-    private String[] columnNames = {"Text", "File Name", "Sentence Index"};
+    private String[] columnNames = {"Left Window", "Keyword", "Right Window", "File Name", "Sentence Index"};
     
     public DataModel() {
         super();
-        sentences = new ArrayList<>();
         sentenceNodes = new ArrayList<ArrayList<String>>();
-        fileNames = new ArrayList<>();
-        filePaths = new ArrayList<>();
-        sentenceNumbers = new ArrayList<>();
+//        fileNames = new ArrayList<>();
+//        filePaths = new ArrayList<>();
+//        sentenceNumbers = new ArrayList<>();
         rows = new ArrayList<String[]>();
     } 
 
-    public ArrayList<String> getSentences() {
-        return sentences;
-    }
-
-    public ArrayList<String> getFileNames() {
-        return fileNames;
-    }
-
-    public ArrayList<String> getSentenceIndices() {
-        return sentenceNumbers;
-    }
+//    public ArrayList<String> getFileNames() {
+//        return fileNames;
+//    }
+//
+//    public ArrayList<String> getSentenceIndices() {
+//        return sentenceNumbers;
+//    }
 
     public ArrayList<ArrayList<String>> getSentenceNodes() {
         return sentenceNodes;
     }
 
-    public ArrayList<String> getFilePaths() {
-        return filePaths;
-    }
-
-    public ArrayList<String> getSentenceNumbers() {
-        return sentenceNumbers;
-    }
+//    public ArrayList<String> getFilePaths() {
+//        return filePaths;
+//    }
+//
+//    public ArrayList<String> getSentenceNumbers() {
+//        return sentenceNumbers;
+//    }
     
     
     
     public void setDataEntry(String sentence, ArrayList<String> nodes, String fileName, String filePath, String sentNumber){
-        sentences.add(sentence);
         sentenceNodes.add(nodes);
-        fileNames.add(fileName);
-        filePaths.add(filePath);
-        sentenceNumbers.add(sentNumber);
-        addRow(sentence, fileName, sentNumber);
+//        fileNames.add(fileName);
+//        filePaths.add(filePath);
+//        sentenceNumbers.add(sentNumber);
+        addRow(sentence, "", "", fileName, sentNumber);
     }
     
     public void setDataEntry(SentenceDataModel sentenceData){
-        sentences.add(sentenceData.getSentence());
         sentenceNodes.add(sentenceData.getWords());
-        fileNames.add(sentenceData.getFilename());
-        filePaths.add(sentenceData.getFilepath());
-        sentenceNumbers.add(sentenceData.getSentenceNumber());
-        addRow(sentenceData.getSentence(), sentenceData.getFilename(), sentenceData.getSentenceNumber());
+//        fileNames.add(sentenceData.getFilename());
+//        filePaths.add(sentenceData.getFilepath());
+//        sentenceNumbers.add(sentenceData.getSentenceNumber()); 
+        addRow(sentenceData.getLeft(), sentenceData.getKeyword(), sentenceData.getRight(), sentenceData.getFilename(), sentenceData.getSentenceNumber());
+ 
     }
     
-    private void addRow(String sentence,String fileName,String sentNumber){
-        String[] row = {sentence, fileName, sentNumber};
+    private void addRow(String left, String keyword, String right, String fileName,String sentNumber){
+        String[] row = {left, keyword, right, fileName, sentNumber};
         rows.add(row);
     }
     
     public SentenceDataModel getDataEntry(int index){
         SentenceDataModel sentenceEntry = new SentenceDataModel();
-        sentenceEntry.setFilename(fileNames.get(index));
-        sentenceEntry.setFilepath(filePaths.get(index));
-        sentenceEntry.setSentence(sentences.get(index));
-        sentenceEntry.setSentenceNumber(sentenceNumbers.get(index));
+        sentenceEntry.setFilename(rows.get(index)[3]);
+//        sentenceEntry.setFilepath(filePaths.get(index));
+        sentenceEntry.setSentenceNumber(rows.get(index)[4]);
         sentenceEntry.setWords(sentenceNodes.get(index));
         return sentenceEntry;
     }
     
     public int getSize(){
-        return sentences.size();
+        return sentenceNodes.size();
     }
 
     public ArrayList<String[]> getRows() {
@@ -106,7 +98,7 @@ public class DataModel  extends AbstractTableModel{
 
     @Override
     public int getColumnCount() {
-        return 3;
+        return columnNames.length;
     }
 
     @Override

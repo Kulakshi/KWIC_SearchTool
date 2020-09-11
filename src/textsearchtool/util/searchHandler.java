@@ -6,59 +6,72 @@
 package textsearchtool.util;
 
 import java.util.ArrayList;
+import javax.swing.SwingWorker;
+import textsearchtool.ProgressDialog;
 
 /**
  *
  * @author Bashi
  */
 public class searchHandler {
+
     public DataModel searchQuery(String query, DataModel dataModel, int windowSize) {
-        int hits = 0;
+        
         DataModel outputModel = new DataModel();
-//        System.out.println("Searching");
-        for (int i = 0; i < dataModel.getSize(); i++) {
-            SentenceDataModel sentenceData = dataModel.getDataEntry(i);
-            String sentence = sentenceData.getSentence();
-            int index = -1;
-            for (String word : sentenceData.getWords()) {
-                index++;
-                if (word.trim().equalsIgnoreCase(query)) {
-                    hits++;
-                    String left = "";
-                    int startIndex = 0;
-                    if (index > windowSize) {
-                        startIndex = index - windowSize;
-                    }
-                    left = joinWords(sentenceData.getWords(), startIndex, index);
-                    if (left == null) {
-                        left = "";
-                    }
+        
+        SwingWorker worker = new SwingWorker() {
+            int hits = 0;
+            
+            @Override
+            protected Object doInBackground() throws Exception {
+                for (int i = 0; i < dataModel.getSize(); i++) {
+                    SentenceDataModel sentenceData = dataModel.getDataEntry(i);
+                    int index = -1;
+                    for (String word : sentenceData.getWords()) {
+                        index++;
+                        if (word.trim().equalsIgnoreCase(query)) {
+                            hits++;
+                            String left = "";
+                            int startIndex = 0;
+                            if (index > windowSize) {
+                                startIndex = index - windowSize;
+                            }
+                            left = joinWords(sentenceData.getWords(), startIndex, index);
+                            if (left == null) {
+                                left = "";
+                            }
 
+                            String right = "";
+                            int endIndex = index + 1 + windowSize;
+                            if (sentenceData.getWords().size() < endIndex) {
+                                endIndex = sentenceData.getWords().size();
+                            }
+
+                            right = joinWords(sentenceData.getWords(), index + 1, endIndex);
+                            
+                            if (right == null) {
+                                right = "";
+                            }
+
+                            String sentenceWindow = left + " " + word + " " + right;
+                            SentenceDataModel newSentenceData = sentenceData.getCopy();
+                            newSentenceData.setLeft(left);
+                            newSentenceData.setRight(right);
+                            newSentenceData.setKeyword(word);
+
+                            outputModel.setDataEntry(newSentenceData);
+                        }
+                    }
                     
-                    String right = "";
-                    int endIndex = index + 1 + windowSize;
-                    if (sentenceData.getWords().size() < endIndex) {
-                        endIndex = sentenceData.getWords().size();
-                    }
-
-                    right = joinWords(sentenceData.getWords(), index + 1, endIndex);
-                    System.out.println(right);
-                    if (right == null) {
-                        right = "";
-                    }
-
-                    String sentenceWindow = left + " " + word + " " + right;
-                    SentenceDataModel newSentenceData = sentenceData.getCopy();
-                    newSentenceData.setSentence(sentenceWindow);
-
-                    outputModel.setDataEntry(newSentenceData);
-//                    System.out.println(sentence);
-//                    System.out.println(sentenceData.getFilename());
-//                    System.out.println(sentenceData.getSentenceNumber());
+                    int progress = (int)(i * 100 /dataModel.getSize());
+                    setProgress(progress);
                 }
+                return null;
             }
-        }
-        System.out.println(hits);
+
+        };
+
+            ProgressDialog.showProgress(null, worker, "Searching...", "");
         return outputModel;
     }
 

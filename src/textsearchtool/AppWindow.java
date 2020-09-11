@@ -2,11 +2,27 @@ package textsearchtool;
 
 import java.awt.Component;
 import java.awt.Dimension;
+import java.awt.GridBagConstraints;
+import java.awt.GridBagLayout;
+import java.awt.Insets;
+import java.awt.List;
+import java.beans.PropertyChangeEvent;
+import java.beans.PropertyChangeListener;
 import java.io.File;
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.HashSet;
 import java.util.Scanner;
+import java.util.Set;
+import javax.swing.JComponent;
+import javax.swing.JDialog;
 import javax.swing.JFileChooser;
+import javax.swing.JLabel;
+import javax.swing.JProgressBar;
 import javax.swing.JTable;
+import javax.swing.SwingUtilities;
+import javax.swing.SwingWorker;
+import javax.swing.border.EmptyBorder;
 import javax.swing.filechooser.FileNameExtensionFilter;
 import textsearchtool.util.DataModel;
 import textsearchtool.util.FileReader;
@@ -22,6 +38,9 @@ import textsearchtool.util.searchHandler;
  *
  * @author Bashi
  */
+
+
+
 public class AppWindow extends javax.swing.JFrame {
 
     /**
@@ -29,9 +48,25 @@ public class AppWindow extends javax.swing.JFrame {
      */
     File lastOpenedFile;
     DataModel sentences;
+    DataModel searchResults;
+    Set<File> selectedFiles;
     
+
     public AppWindow() {
         initComponents();
+    }
+    
+    private void setInitState(){
+        sentences = null;
+        searchResults = null;
+        selectedFiles = null;
+        btn_browseFile.setText("Add XML Files");
+        button_search.setEnabled(false);
+        label_numFiles.setVisible(false);
+        label_numHits.setVisible(false);
+        table_output.setVisible(false);
+        table_output.setModel(null);
+        table_output.removeAll();
     }
 
     /**
@@ -44,30 +79,26 @@ public class AppWindow extends javax.swing.JFrame {
     private void initComponents() {
 
         jPanel1 = new javax.swing.JPanel();
-        jLabel1 = new javax.swing.JLabel();
-        jLabel2 = new javax.swing.JLabel();
         jLabel3 = new javax.swing.JLabel();
-        textField_filePath = new javax.swing.JTextField();
         btn_browseFile = new javax.swing.JButton();
         spinner_windowSize = new javax.swing.JSpinner();
         button_search = new javax.swing.JButton();
-        textField_search = new javax.swing.JTextField();
+        label_numFiles = new javax.swing.JLabel();
+        combo_search = new javax.swing.JComboBox<>();
+        label_numHits = new javax.swing.JLabel();
+        button_clearFiles = new javax.swing.JButton();
         panel_output = new javax.swing.JPanel();
         jScrollPane1 = new javax.swing.JScrollPane();
         table_output = new javax.swing.JTable();
-        jLabel4 = new javax.swing.JLabel();
-        label_numHits = new javax.swing.JLabel();
 
         setDefaultCloseOperation(javax.swing.WindowConstants.EXIT_ON_CLOSE);
+        setTitle("KWIC Search Tool");
         setLocationByPlatform(true);
-
-        jLabel1.setText("Search for the text:");
-
-        jLabel2.setText("File Name:");
+        setMinimumSize(new java.awt.Dimension(991, 428));
 
         jLabel3.setText("Window size:");
 
-        btn_browseFile.setText("Browse");
+        btn_browseFile.setText("Add XML Files");
         btn_browseFile.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
                 btn_browseFileActionPerformed(evt);
@@ -76,10 +107,26 @@ public class AppWindow extends javax.swing.JFrame {
 
         spinner_windowSize.setModel(new javax.swing.SpinnerNumberModel(5, 0, null, 1));
 
-        button_search.setText("Search");
+        button_search.setText("Search Node");
+        button_search.setEnabled(false);
         button_search.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
                 button_searchActionPerformed(evt);
+            }
+        });
+
+        combo_search.setEditable(true);
+        combo_search.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                combo_searchActionPerformed(evt);
+            }
+        });
+
+        button_clearFiles.setText("Clear All Files");
+        button_clearFiles.setEnabled(false);
+        button_clearFiles.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                button_clearFilesActionPerformed(evt);
             }
         });
 
@@ -89,101 +136,92 @@ public class AppWindow extends javax.swing.JFrame {
             jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(jPanel1Layout.createSequentialGroup()
                 .addGap(26, 26, 26)
-                .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING, false)
-                    .addGroup(jPanel1Layout.createSequentialGroup()
-                        .addComponent(jLabel1)
-                        .addGap(18, 18, 18)
-                        .addComponent(textField_search))
-                    .addGroup(jPanel1Layout.createSequentialGroup()
-                        .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                            .addComponent(jLabel3)
-                            .addComponent(jLabel2, javax.swing.GroupLayout.PREFERRED_SIZE, 62, javax.swing.GroupLayout.PREFERRED_SIZE))
-                        .addGap(53, 53, 53)
-                        .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                            .addComponent(spinner_windowSize, javax.swing.GroupLayout.PREFERRED_SIZE, 71, javax.swing.GroupLayout.PREFERRED_SIZE)
-                            .addComponent(textField_filePath, javax.swing.GroupLayout.PREFERRED_SIZE, 658, javax.swing.GroupLayout.PREFERRED_SIZE))))
                 .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                    .addComponent(label_numHits)
                     .addGroup(jPanel1Layout.createSequentialGroup()
-                        .addGap(11, 11, 11)
-                        .addComponent(btn_browseFile))
-                    .addGroup(jPanel1Layout.createSequentialGroup()
-                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
-                        .addComponent(button_search)))
-                .addContainerGap(23, Short.MAX_VALUE))
+                        .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                            .addComponent(combo_search, javax.swing.GroupLayout.PREFERRED_SIZE, 373, javax.swing.GroupLayout.PREFERRED_SIZE)
+                            .addGroup(jPanel1Layout.createSequentialGroup()
+                                .addComponent(btn_browseFile)
+                                .addGap(29, 29, 29)
+                                .addComponent(label_numFiles)))
+                        .addGap(18, 18, 18)
+                        .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                            .addComponent(button_clearFiles)
+                            .addGroup(jPanel1Layout.createSequentialGroup()
+                                .addComponent(button_search, javax.swing.GroupLayout.PREFERRED_SIZE, 135, javax.swing.GroupLayout.PREFERRED_SIZE)
+                                .addGap(38, 38, 38)
+                                .addComponent(jLabel3)
+                                .addGap(18, 18, 18)
+                                .addComponent(spinner_windowSize, javax.swing.GroupLayout.PREFERRED_SIZE, 71, javax.swing.GroupLayout.PREFERRED_SIZE)))))
+                .addContainerGap(223, Short.MAX_VALUE))
         );
         jPanel1Layout.setVerticalGroup(
             jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(jPanel1Layout.createSequentialGroup()
-                .addGap(32, 32, 32)
+                .addGap(27, 27, 27)
                 .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
-                    .addComponent(jLabel2)
-                    .addComponent(textField_filePath, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                    .addComponent(btn_browseFile))
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
-                .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
-                    .addComponent(spinner_windowSize, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                    .addComponent(jLabel3))
+                    .addComponent(btn_browseFile)
+                    .addComponent(label_numFiles)
+                    .addComponent(button_clearFiles))
                 .addGap(18, 18, 18)
-                .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
-                    .addComponent(jLabel1)
-                    .addComponent(textField_search, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                    .addComponent(button_search))
-                .addContainerGap(26, Short.MAX_VALUE))
+                .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                    .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                        .addComponent(button_search)
+                        .addComponent(jLabel3)
+                        .addComponent(spinner_windowSize, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
+                    .addComponent(combo_search, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, 15, Short.MAX_VALUE)
+                .addComponent(label_numHits))
         );
 
-        panel_output.setVisible(false);
-
+        table_output.setAutoCreateRowSorter(true);
         table_output.setModel(new javax.swing.table.DefaultTableModel(
             new Object [][] {
-                {null, null, null},
-                {null, null, null},
-                {null, null, null},
-                {null, null, null}
+
             },
             new String [] {
-                "Text", "File", "Sentence index"
+                "Left Window", "Keyword", "Right Window", "File", "Sentence Index"
             }
         ) {
             Class[] types = new Class [] {
-                java.lang.String.class, java.lang.String.class, java.lang.String.class
+                java.lang.String.class, java.lang.Object.class, java.lang.Object.class, java.lang.Object.class, java.lang.Object.class
             };
 
             public Class getColumnClass(int columnIndex) {
                 return types [columnIndex];
             }
         });
-        table_output.setCellSelectionEnabled(true);
         jScrollPane1.setViewportView(table_output);
 
         javax.swing.GroupLayout panel_outputLayout = new javax.swing.GroupLayout(panel_output);
         panel_output.setLayout(panel_outputLayout);
         panel_outputLayout.setHorizontalGroup(
             panel_outputLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addComponent(jScrollPane1, javax.swing.GroupLayout.Alignment.TRAILING)
+            .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, panel_outputLayout.createSequentialGroup()
+                .addContainerGap()
+                .addComponent(jScrollPane1)
+                .addContainerGap())
         );
         panel_outputLayout.setVerticalGroup(
             panel_outputLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(panel_outputLayout.createSequentialGroup()
-                .addComponent(jScrollPane1, javax.swing.GroupLayout.PREFERRED_SIZE, 234, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addGap(0, 0, Short.MAX_VALUE))
+                .addContainerGap()
+                .addComponent(jScrollPane1, javax.swing.GroupLayout.DEFAULT_SIZE, 234, Short.MAX_VALUE)
+                .addGap(35, 35, 35))
         );
-
-        jLabel4.setText("#Hits: ");
 
         javax.swing.GroupLayout layout = new javax.swing.GroupLayout(getContentPane());
         getContentPane().setLayout(layout);
         layout.setHorizontalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addComponent(panel_output, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
             .addGroup(layout.createSequentialGroup()
                 .addComponent(jPanel1, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addGap(0, 1, Short.MAX_VALUE))
+                .addGap(0, 12, Short.MAX_VALUE))
             .addGroup(layout.createSequentialGroup()
                 .addContainerGap()
-                .addComponent(jLabel4)
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                .addComponent(label_numHits)
-                .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
+                .addComponent(panel_output, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                .addContainerGap())
         );
         layout.setVerticalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
@@ -191,60 +229,108 @@ public class AppWindow extends javax.swing.JFrame {
                 .addComponent(jPanel1, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                 .addComponent(panel_output, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
-                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
-                    .addComponent(jLabel4)
-                    .addComponent(label_numHits))
                 .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
         );
 
-        setSize(new java.awt.Dimension(942, 491));
+        setSize(new java.awt.Dimension(1009, 432));
         setLocationRelativeTo(null);
     }// </editor-fold>//GEN-END:initComponents
 
     private void btn_browseFileActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btn_browseFileActionPerformed
-        // TODO add your handling code here:
+        
+
+        // Load files
+        
         final JFileChooser jFileChooser = new JFileChooser();
         FileNameExtensionFilter filter = new FileNameExtensionFilter("XML FILES", "xml");
         jFileChooser.setFileFilter(filter);
-        jFileChooser.setCurrentDirectory(new File("F:/Lancaster_data/2554/download/Texts/A/A0"));
-        if(lastOpenedFile != null){
+        jFileChooser.setFileSelectionMode(JFileChooser.FILES_AND_DIRECTORIES);
+        if (lastOpenedFile != null) {
             jFileChooser.setCurrentDirectory(lastOpenedFile);
         }
         jFileChooser.setMultiSelectionEnabled(true);
         jFileChooser.setPreferredSize(new Dimension(700, 500));
         jFileChooser.showOpenDialog(this);
-        File[] selectedFiles = jFileChooser.getSelectedFiles();
         
-        System.out.println(selectedFiles.length);
+        //Read files
+        FileReader fileReader = new FileReader();
+        ArrayList<File> selectedFiles_new = new ArrayList<File>();
         
-        lastOpenedFile = selectedFiles[0];
-        textField_filePath.setText(selectedFiles[0].getAbsolutePath());
+        File[] files = jFileChooser.getSelectedFiles();      
+        File f = files[0];
+        lastOpenedFile = f;
+        if (f.exists() && f.isDirectory()) {
+            fileReader.listFilesForFolder(f, selectedFiles_new);
+        }else{
+            for(File file : files){
+                selectedFiles_new.add(file);
+            }
+        }
+
+        if (selectedFiles_new.size() > 0) {
+
+            if (selectedFiles == null) {
+                selectedFiles = new HashSet<File>();
+            }
+
+            int i = -1;
+            for (File file : selectedFiles_new) {
+                i++;
+                boolean added = selectedFiles.add(file);
+                if (!added) {
+                    selectedFiles_new.remove(i);
+                }
+            }
+
+            label_numFiles.setText(selectedFiles.size() + " files selected");
+            label_numFiles.setVisible(true);
+            btn_browseFile.setText("Add More Files");
+
+            try{
+            if (sentences == null) {
+                sentences = fileReader.loadSentences(selectedFiles_new, null);
+            } else {
+                sentences = fileReader.loadSentences(selectedFiles_new, sentences);
+            }
+            }catch(RuntimeException e){
+                e.printStackTrace();
+            }
+        }
         
-        FileReader fileReader = new FileReader(selectedFiles);
-        sentences = fileReader.loadSentences();
-//        System.out.println("# Sentences loaded "+sentences.getSize());
+        button_search.setEnabled(true);
+        button_clearFiles.setEnabled(true);
+
     }//GEN-LAST:event_btn_browseFileActionPerformed
 
     private void button_searchActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_button_searchActionPerformed
         // TODO add your handling code here:
-        int window_size = (Integer)spinner_windowSize.getValue();
-        String searchQuery = textField_search.getText();
+        int window_size = (Integer) spinner_windowSize.getValue();
+        String searchQuery = combo_search.getSelectedItem().toString();
         searchHandler searchHandler = new searchHandler();
-            
-        if(sentences != null){
+
+        if (sentences != null) {
 //            System.out.println("Search started");
-            DataModel searchResults = searchHandler.searchQuery(searchQuery, sentences, window_size);
+            searchResults = searchHandler.searchQuery(searchQuery, sentences, window_size);
             displayOutput(searchResults);
         }
+        combo_search.addItem(searchQuery);
     }//GEN-LAST:event_button_searchActionPerformed
 
-    void displayOutput(DataModel searchResults){
+    private void combo_searchActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_combo_searchActionPerformed
+        // TODO add your handling code here:
+        
+    }//GEN-LAST:event_combo_searchActionPerformed
+
+    private void button_clearFilesActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_button_clearFilesActionPerformed
+        setInitState();  
+    }//GEN-LAST:event_button_clearFilesActionPerformed
+
+    void displayOutput(DataModel searchResults) {
         panel_output.setVisible(true);
         table_output.setModel(searchResults);
-        label_numHits.setText(searchResults.getSize()+"");
-        
+        label_numHits.setText("Number of Hits: "+searchResults.getSize() + "");
     }
+
     /**
      * @param args the command line arguments
      */
@@ -282,18 +368,16 @@ public class AppWindow extends javax.swing.JFrame {
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private javax.swing.JButton btn_browseFile;
+    private javax.swing.JButton button_clearFiles;
     private javax.swing.JButton button_search;
-    private javax.swing.JLabel jLabel1;
-    private javax.swing.JLabel jLabel2;
+    private javax.swing.JComboBox<String> combo_search;
     private javax.swing.JLabel jLabel3;
-    private javax.swing.JLabel jLabel4;
     private javax.swing.JPanel jPanel1;
     private javax.swing.JScrollPane jScrollPane1;
+    private javax.swing.JLabel label_numFiles;
     private javax.swing.JLabel label_numHits;
     private javax.swing.JPanel panel_output;
     private javax.swing.JSpinner spinner_windowSize;
     private javax.swing.JTable table_output;
-    private javax.swing.JTextField textField_filePath;
-    private javax.swing.JTextField textField_search;
     // End of variables declaration//GEN-END:variables
 }

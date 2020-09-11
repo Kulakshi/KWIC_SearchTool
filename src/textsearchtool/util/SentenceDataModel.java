@@ -13,18 +13,36 @@ import java.util.ArrayList;
  */
 public class SentenceDataModel {
 
-    private String sentence;
+    private String left;
+    private String keyword;
+    private String right;
     private ArrayList<String> words;
     private String filename;
     private String filepath;
     private String sentenceNumber;
 
-    public String getSentence() {
-        return sentence;
+    public String getLeft() {
+        return left;
     }
 
-    public void setSentence(String sentence) {
-        this.sentence = sentence;
+    public void setLeft(String left) {
+        this.left = left;
+    }
+
+    public String getKeyword() {
+        return keyword;
+    }
+
+    public void setKeyword(String keyword) {
+        this.keyword = keyword;
+    }
+
+    public String getRight() {
+        return right;
+    }
+
+    public void setRight(String right) {
+        this.right = right;
     }
 
     public ArrayList<String> getWords() {
@@ -63,7 +81,6 @@ public class SentenceDataModel {
         SentenceDataModel copy = new SentenceDataModel();
         copy.setFilename(filename);
         copy.setFilepath(filepath);
-        copy.setSentence(sentence);
         copy.setSentenceNumber(sentenceNumber);
         copy.setWords(words);
         return copy;
