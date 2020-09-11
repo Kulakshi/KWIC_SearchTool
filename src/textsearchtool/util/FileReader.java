@@ -49,10 +49,7 @@ public class FileReader {
                     int index = -1;
                     for (File dataFile : dataFiles) {
                         index++;
-                        System.out.println(""+index);
                         int progress = (int)(index * 100 /dataFiles.size());
-                        System.out.println(progress+"%");
-                        System.out.println(dataFile.getAbsolutePath());
                         setProgress(progress);
                         if (dataFile != null) {
                             if (dataFile.getPath().endsWith("xml")) {
@@ -60,10 +57,8 @@ public class FileReader {
                                     DocumentBuilder dBuilder = dbFactory.newDocumentBuilder();
                                     Document doc = dBuilder.parse(dataFile);
                                     doc.getDocumentElement().normalize();
-                                    System.out.println("11");
 
                                     NodeList sentenceTags = doc.getElementsByTagName("s");
-                                    System.out.println(sentenceTags.getLength()+"|||");
                                     for (int i = 0; i < sentenceTags.getLength(); i++) {
                                         Node sentenceTag = sentenceTags.item(i);
                                         String sentenceNumber = ((Element) sentenceTag).getAttribute("n");
@@ -74,12 +69,12 @@ public class FileReader {
                                             for (int j = 0; j < sentElements.getLength(); j++) {
                                                 Node nWord = sentElements.item(j);
                                                 if (nWord.getNodeType() == Node.ELEMENT_NODE) {
-                                                    System.out.println(nWord.getTextContent().toString());
+//                                                    System.out.println(nWord.getTextContent().toString());
                                                     words.add(nWord.getTextContent().toString());
                                                 }
                                             }
                                         }else{
-                                            System.out.println("NOT AN ELEMENT TAG");
+//                                            System.out.println("NOT AN ELEMENT TAG");
                                         }
                                         data_model.setDataEntry(null, words, dataFile.getName(), dataFile.getAbsolutePath(), sentenceNumber);
 
@@ -98,7 +93,7 @@ public class FileReader {
                                         JOptionPane.ERROR_MESSAGE);
                             }
                         }else{
-                            System.out.println("NOT A DATA FILE");
+//                            System.out.println("NOT A DATA FILE");
                         }
                     }
                     return null;
