@@ -20,5 +20,7 @@ This is implemented as a netbeans project
 - Fix the application hang error mentioned above
 - Add file updating capability (user can check the already added files and add/remove these files)
 - Use more efficient file reading and searching algorithms
-- Reduce memory usage by using hash values instead os Strings
+- Reduce memory usage by using hash values instead of Strings
+- Enhance UI/UX 
+- Add save search results capability
 
