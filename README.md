@@ -5,7 +5,8 @@ KWIC search tool is a simple implementation of a Key Word In Context text search
 ## Developer guide
 This is implemented as a netbeans project
 
-##Current capabilities
+
+ ## Current capabilities
 - Add files (as files or folders) initially and over and over again - the system checks for duplicate files and remove them
 - Search for a word with a window size to see the context
 - Get results on left and right side contexts, containing file name and sentence index
